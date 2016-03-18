@@ -1,8 +1,30 @@
-data={
+apiData={
 	'userinfo':[
-	  { id: 0, first_name: 'Leo', last_name: 'Tolstoi' ,group:'admin'},
-      { id: 1, first_name: 'Jane', last_name: 'Austen' ,group:'user'}
+	    { id: 0, first_name: 'Leo', last_name: 'Tolstoi'},
+      { id: 1, first_name: 'Jane', last_name: 'Austen'},
+      { id: 2, first_name: 'Xiao', last_name: 'An'}
 	],
+  'users':[
+      { id: 0, user_name: 'Leo' ,group:'0'},
+      { id: 1, user_name: 'Jane' ,group:'1'},
+      { id: 2, user_name: 'Xiao',group:'1'}
+  ],
+  'role':[
+      { id: 0, name:'admin',role:'1,2,3,4'},
+      { id: 1, name:'user',role: '1'},
+      { id: 2, name:'user',role: '1'}
+  ],
+  'privilege':[
+      {name:"article/list"},
+      {name:"article/edit"},
+      {name:"article/delete"},
+      {name:"article/creat"},
+      {name:"article/update"},
+      {name:"user/creat"},
+      {name:"user/edit"},
+      {name:"user/delete"}
+  ],
+
 	"posts": [
     {
       "id": 1,
@@ -11,6 +33,7 @@ data={
       "body": "<p>Rerum velit quos est <strong>similique</strong>. Consectetur tempora eos ullam velit nobis sit debitis. Magni explicabo omnis delectus labore vel recusandae.</p><p>Aut a minus laboriosam harum placeat quas minima fuga. Quos nulla fuga quam officia tempore. Rerum occaecati ut eum et tempore. Nam ab repudiandae et nemo praesentium.</p><p>Cumque corporis officia occaecati ducimus sequi laborum omnis ut. Nam aspernatur veniam fugit. Nihil eum libero ea dolorum ducimus impedit sed. Quidem inventore porro corporis debitis eum in. Nesciunt unde est est qui nulla. Esse sunt placeat molestiae molestiae sed quia. Sunt qui quidem quos velit reprehenderit quos blanditiis ducimus. Sint et molestiae maxime ut consequatur minima. Quaerat rem voluptates voluptatem quos. Corporis perferendis in provident iure. Commodi odit exercitationem excepturi et deserunt qui.</p><p>Optio iste necessitatibus velit non. Neque sed occaecati culpa porro culpa. Quia quam in molestias ratione et necessitatibus consequatur. Est est tempora consequatur voluptatem vel. Mollitia tenetur non quis omnis perspiciatis deserunt sed necessitatibus. Ad rerum reiciendis sunt aspernatur.</p><p>Est ullam ut magni aspernatur. Eum et sed tempore modi.</p><p>Earum aperiam sit neque quo laborum suscipit unde. Expedita nostrum itaque non non adipisci. Ut delectus quis delectus est at sint. Iste hic qui ea eaque eaque sed id. Hic placeat rerum numquam id velit deleniti voluptatem. Illum adipisci voluptas adipisci ut alias. Earum exercitationem iste quidem eveniet aliquid hic reiciendis. Exercitationem est sunt in minima consequuntur. Aut quaerat libero dolorem.</p>",
       "views": 143,
       "average_note": 2.72198,
+      "userId":'1',
       "pictures": {
         "first": {
           "name": "the picture name",

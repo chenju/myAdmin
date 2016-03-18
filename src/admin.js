@@ -8,14 +8,26 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     // attach the admin application to the DOM and execute it
     // create an admin application
     var admin = nga.application('目录宝管理后台')
-        .baseApiUrl('http://jsonplaceholder.typicode.com/'); // main API endpoint
+        .baseApiUrl('/'); // main API endpoint
 
     var user = nga.entity('users');
+    var role = nga.entity('role');
+
+    //role.editionView().fields([nga.field('name')]);
+
+    admin.addEntity(role);
     // set the fields of the user entity list view
     user.listView().fields([
-        nga.field('name').isDetailLink(true),
-        nga.field('username'),
-        nga.field('email')
+        nga.field('user_name').isDetailLink(true),
+        //nga.field('group'),
+        nga.field('group', 'reference')
+                .targetEntity(role)
+                .targetField(nga.field('name'))
+                .label('group'),
+        nga.field('group', 'reference')
+                .targetEntity(role)
+                .targetField(nga.field('role'))
+                .label('rule').isDetailLink(false)
     ]);
 
     user.creationView().fields([
@@ -33,7 +45,9 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         nga.field('address.zipcode')
             .label('Zipcode')
             .validation({ pattern: '[A-Z\-0-9]{5,10}' }),
-        nga.field('phone'),
+        nga.field('group','template')
+        .template('<span ng-repeat="name in entry.values.role track by $index" class="label label-default">{{ name }}</span>')
+                .cssClasses('hidden-xs'),
         nga.field('website')
             .validation({ validator: function(value) {
                 if (value.indexOf('http://') !== 0) throw new Error ('Invalid url in website');
@@ -56,7 +70,7 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
                 }),
             nga.field('userId', 'reference')
                 .targetEntity(user)
-                .targetField(nga.field('username'))
+                .targetField(nga.field('user_name'))
                 .label('Author')
         ])
         .listActions(['show'])
