@@ -18,22 +18,17 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     admin.addEntity(role);
     // set the fields of the user entity list view
     user.listView().fields([
-        nga.field('user_name').isDetailLink(true),
-        //nga.field('group'),
+        nga.field('user_name').isDetailLink(true).label('用户名'),
         nga.field('group', 'reference')
                 .targetEntity(role)
                 .targetField(nga.field('name'))
-                .label('group'),
-        nga.field('group', 'reference')
-                .targetEntity(role)
-                .targetField(nga.field('role'))
-                .label('rule').isDetailLink(false)
-    ]);
-
+                .label('所属组'),
+        
+    ]).title('用户列表')
     user.creationView().fields([
         nga.field('name')
             .validation({ required: true, minlength: 3, maxlength: 100 }),
-        nga.field('username')
+        nga.field('user_name')
             .attributes({ placeholder: 'No space allowed, 5 chars min' })
             .validation({ required: true, pattern: '[A-Za-z0-9\.\-_]{5,20}' }),
         nga.field('email', 'email')
@@ -106,7 +101,7 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     admin.addEntity(nga.entity('comments'));
 
     admin.menu(nga.menu()
-        .addChild(nga.menu(user).icon('<span class="glyphicon glyphicon-user"></span>'))
+        .addChild(nga.menu(user).icon('<span class="glyphicon glyphicon-user"></span>').title('用户'))
         .addChild(nga.menu(post).icon('<span class="glyphicon glyphicon-pencil"></span>'))
     );
 

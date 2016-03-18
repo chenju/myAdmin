@@ -5,14 +5,13 @@ apiData={
       { id: 2, first_name: 'Xiao', last_name: 'An'}
 	],
   'users':[
-      { id: 0, user_name: 'Leo' ,group:'0'},
-      { id: 1, user_name: 'Jane' ,group:'1'},
-      { id: 2, user_name: 'Xiao',group:'1'}
+      { user_id: 0, user_name: 'Leo' ,group:'0'},
+      { user_id: 1, user_name: 'Jane' ,group:'1'},
+      { user_id: 2, user_name: 'Xiao',group:'1'}
   ],
   'role':[
-      { id: 0, name:'admin',role:'1,2,3,4'},
-      { id: 1, name:'user',role: '1'},
-      { id: 2, name:'user',role: '1'}
+      { role_id: 0, name:'admin',privilege:'1,2,3,4'},
+      { role_id: 1, name:'user', privilege: '1'},
   ],
   'privilege':[
       {name:"article/list"},
