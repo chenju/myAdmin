@@ -14,7 +14,13 @@
     "ng-admin": "^0.9.1"
   },
   "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-core": "^6.7.2",
+    "babel-loader": "^6.2.4",
+    "css-loader": "^0.23.1",
+    "extract-text-webpack-plugin": "^1.0.1",
     "fakerest": "^1.1.4",
-    "sinon": "^1.17.3"
+    "sinon": "^1.17.3",
+    "webpack": "^1.12.14"
   }
 }

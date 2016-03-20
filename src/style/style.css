@@ -1,3 +1,7 @@
 .ng-admin-entity-posts .ng-admin-column-title {
     width: 400px;
 }
+
+body{
+	font-family: STHeiti
+}
