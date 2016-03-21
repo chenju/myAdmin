@@ -1,3 +1,5 @@
+//require('../js/api')
+
 var myApp = angular.module('myApp', ['ng-admin']);
 // declare a function to run when the module bootstraps (during the 'config' phase)
 myApp.config(['NgAdminConfigurationProvider', 'FieldViewConfigurationProvider', function(nga, fvp) {
