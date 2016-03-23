@@ -10,8 +10,7 @@ myApp.controller('username', ['$scope', '$window', '$rootScope',function($scope,
     $scope.username =  $window.localStorage.getItem('posters_galore_login');
     $rootScope.$on('event:auth-loginRequired',function(){
 
-        console.log('fuck')
-        alert('请注册')
+        $window.location.href = "./login.html";
 
     })
 }])

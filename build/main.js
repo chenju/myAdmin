@@ -65,7 +65,7 @@
 	    $rootScope.$on('event:auth-loginRequired', function () {
 
 	        console.log('fuck');
-	        alert('请注册');
+	        window.location.href = "./login.html";
 	    });
 	}]);
 
@@ -147,12 +147,13 @@
 	        return {
 	            responseError: function (rejection) {
 
+	                console.log(rejection);
+
 	                var config = rejection.config || {};
 	                if (!config.ignoreAuthModule) {
-	                    console.log(rejection.status);
 	                    switch (rejection.status) {
 
-	                        case -1:
+	                        case 400:
 	                            var deferred = $q.defer();
 	                            httpBuffer.append(config, deferred);
 	                            $rootScope.$broadcast('event:auth-loginRequired', rejection);
