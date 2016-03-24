@@ -2,31 +2,51 @@
 require('./http')
 
 var myApp = angular.module('myApp', ['ng-admin','http-auth-interceptor']);
+myApp.constant('AUTH_EVENTS', {
+    loginSuccess: 'auth-login-success',
+    loginFailed: 'auth-login-failed',
+    logoutSuccess: 'auth-logout-success',
+    sessionTimeout: 'auth-session-timeout',
+    notAuthenticated: 'auth-not-authenticated',
+    notAuthorized: 'auth-not-authorized'
+})
+
+require('./auth/auth')
 
 // custom API flavor
 
 // custom controllers
-myApp.controller('username', ['$scope', '$window', '$rootScope',function($scope, $window,$rootScope) { // used in header.html
-    $scope.username =  $window.localStorage.getItem('posters_galore_login');
+myApp.controller('username', ['$scope', '$window', '$rootScope','$state',function($scope, $window,$rootScope,$state) { // used in header.html
+    $scope.username =  $window.localStorage.getItem('username');
     $rootScope.$on('event:auth-loginRequired',function(){
 
-        $window.location.href = "./login.html";
+        //$window.location.href = "./login.html";
+        $state.go('login')
 
     })
 }])
 
+
+
 // custom states (pages)
-//myApp.config(['$stateProvider', require('./segments/segmentsState')]);
+myApp.config(['$stateProvider', require('./login/login')]);
 
 
 myApp.config(['RestangularProvider', function(RestangularProvider) {
     RestangularProvider.addElementTransformer('users', function(element) {
         
         console.log(element)
-
+ 
         return element;
     });
-}]);
+    var token=sessionStorage.getItem('token')
+    RestangularProvider.setDefaultHeaders({
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + token
+    });
+
+    console.log(token)
+}])
 
 
 
@@ -45,12 +65,7 @@ myApp.config(['NgAdminConfigurationProvider', function (nga) {
         nga.field('post_id')
     ])
 
-    var users = nga.entity('user');
-    admin.addEntity(users);
-
-    users.listView().fields([
-        nga.field('name')
-    ])
+    
     
     nga.configure(admin);
 }]);

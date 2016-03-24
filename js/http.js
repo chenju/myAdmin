@@ -1,6 +1,6 @@
 angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
 
-.factory('authService', ['$rootScope', 'httpBuffer', function($rootScope, httpBuffer) {
+.factory('authBackService', ['$rootScope', 'httpBuffer', function($rootScope, httpBuffer) {
     return {
         /**
          * Call this function to indicate that authentication was successfull and trigger a
@@ -13,7 +13,8 @@ angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
          */
         loginConfirmed: function(data, configUpdater) {
             var updater = configUpdater || function(config) {
-                return config; };
+                return config;
+            };
             $rootScope.$broadcast('event:auth-loginConfirmed', data);
             httpBuffer.retryAll(updater);
         },
@@ -39,6 +40,31 @@ angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
  * and broadcasts 'event:auth-forbidden'.
  */
 .config(['$httpProvider', function($httpProvider) {
+
+    $httpProvider.interceptors.push(['$q', function($q) {
+        return {
+            request: function(config) {
+                if (config.data && typeof config.data === 'object') {
+                    //請求在這邊做處理，下方針對請求的資料打包
+                    config.data = serialize(config.data);
+                    //serialize 序列化的程式碼可以參考下方
+                }
+                return config || $q.when(config);
+            }
+        };
+    }]);
+
+    var serialize = function(obj, prefix) {
+        var str = [];
+        for (var p in obj) {
+            var k = prefix ? prefix + "[" + p + "]" : p,
+                v = obj[p];
+            str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v));
+        }
+        return str.join("&");
+    }
+
+
     $httpProvider.interceptors.push(['$rootScope', '$q', 'httpBuffer', function($rootScope, $q, httpBuffer) {
         return {
             responseError: function(rejection) {

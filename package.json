@@ -1,28 +1,36 @@
 {
-  "name": "test",
-  "version": "0.0.1",
-  "description": "myAdmin",
-  "homepage": "https://github.com/chenju/myAdmin",
-  "bugs": "https://github.com/chenju/myAdmin/issue",
-  "contrbutor": "chenju <darkwingjcj@gmail.com",
-  "license": "Apache-2.0",
+  "name": "ng-admin-demo",
+  "version": "0.0.2",
+  "description": "A ng-admin demo on e-commerce domain",
+  "main": "index.html",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chenju/myAdmin.git"
+    "url": "git://github.com/marmelab/ng-admin-demo.git"
   },
-  "dependencies": {
-    "ng-admin": "^0.9.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "babel": "^6.5.2",
-    "babel-core": "^6.7.2",
-    "babel-loader": "^6.2.4",
-    "css-loader": "^0.23.1",
-    "extract-text-webpack-plugin": "^1.0.1",
+    "admin-config": "^0.4.0",
+    "babel": "^5.8.23",
+    "babel-core": "^5.8.22",
+    "babel-loader": "^5.3.2",
+    "chance": "^0.7.6",
+    "css-loader": "^0.16.0",
+    "extract-text-webpack-plugin": "^0.8.2",
     "fakerest": "^1.1.4",
-    "node-sass": "^3.4.2",
-    "sass-loader": "^3.2.0",
-    "sinon": "^1.17.3",
-    "webpack": "^1.12.14"
-  }
+    "html-loader": "^0.3.0",
+    "md5": "^2.0.0",
+    "moment": "^2.10.6",
+    "ng-admin": "marmelab/ng-admin",
+    "node-sass": "^3.3.2",
+    "sass-loader": "^2.0.1",
+    "sinon": "ubervu/Sinon.JS",
+    "style-loader": "^0.12.3",
+    "webpack": "^1.12.0",
+    "webpack-dev-server": "^1.10.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "François Zaninotto",
+  "license": "MIT"
 }
