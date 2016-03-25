@@ -7,19 +7,9 @@
         <link rel="stylesheet" type="text/css" href="build/main.css"/>
     </head>
     <body ng-app="myApp">
-        <a uib-dropdown-toggle href="#" aria-expanded="true" ng-controller="username">
+        <a uib-dropdown-toggle href="#" aria-expanded="true">
         </a>
         <div ui-view></div>
-        <script type="text/javascript">
-        var username = window.localStorage.getItem('userinfo');
-        if (!username) {
-            window.location.href = "./login.html";
-        }
-        function logout() {
-            window.localStorage.removeItem('userinfo');
-            window.location.href = "./login.html";
-        }
-        </script>
         <script type="text/javascript" src="data.js" charset="utf-8"></script>
         
         <script type="text/javascript" src="node_modules/ng-admin/build/ng-admin.min.js" charset="utf-8"></script>

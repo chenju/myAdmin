@@ -28,7 +28,9 @@ export default function($stateProvider) {
                     console.log("success");
                     //$modalInstance.close();
                     //if($rootScope.statnext) $state.go($rootScope.statnext.url.split('/')[1])
+                    console.log(sessionStorage.getItem('token'))
                     $location.path('/dashboard');
+
                 }, function(err) {
                     console.log("error");
                     $scope.error = true;

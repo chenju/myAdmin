@@ -1,5 +1,6 @@
-angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH_EVENTS','$state','authBackService',
-    function($http, $rootScope, $window, AUTH_EVENTS, $state,authBackService) {
+angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH_EVENTS', '$state', 'authBackService', 'Restangular',
+
+    function($http, $rootScope, $window, AUTH_EVENTS, $state, authBackService, Restangular) {
         var authService = {};
         authService.restConfig = {
             headers: {
@@ -9,24 +10,28 @@ angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH
         };
         //the login function
         authService.login = function(credentials, success, error) {
-            var credential = {
-                "email":"darkw1ng@gmail.com",
+            var credentials = {
+                "email": "darkw1ng@gmail.com",
                 "password": "secret"
             }
-            console.log(credential)
-            $http.post('http://lumen.app/auth/login', credential, authService.restConfig).success(function(data) {
+            console.log(credentials)
+            $http.post('http://lumen.app/auth/login', credentials, authService.restConfig).success(function(data) {
                 if (data.token) {
                     var loginData = data
                     sessionStorage.clear()
                     sessionStorage.setItem('token', loginData.token);
-
-                    console.log(loginData)
+                    sessionStorage.setItem('name', loginData.name);
+                    Restangular.setDefaultHeaders({
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + data.token
+                    })
 
                     $rootScope.currentUser = loginData.name;
                     $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
                     authBackService.loginConfirmed('success', function(config) {
                         config.headers["Authorization"] = 'Bearer ' + data.token;
-                        //config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                        console.log("???", data.token)
+                            //config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
                         return config
                     })
                     if (typeof(success) == "function") success(loginData)
@@ -71,14 +76,14 @@ angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH
             if (user === undefined) {
                 //user = currentUser;
                 //user = Session.user
-                user=sessionStorage.getItem('user')
+                user = sessionStorage.getItem('user')
             }
             //return user.role.title === userRoles.user.title || user.role.title === userRoles.admin.title;
             return !!user;
         };
 
         authService.isAuthenticated = function() {
-            var token= sessionStorage.getItem('token')
+            var token = sessionStorage.getItem('token')
             return !!token;
         };
 
@@ -91,9 +96,13 @@ angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH
 
         //log out the user and broadcast the logoutSuccess event
         authService.logout = function() {
-            
-            
+
+
             sessionStorage.clear()
+            Restangular.setDefaultHeaders({
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'none'
+            });
             $rootScope.$broadcast(AUTH_EVENTS.logoutSuccess);
         }
 
