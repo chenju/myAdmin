@@ -56,7 +56,7 @@
 
 	__webpack_require__(2);
 
-	var myApp = angular.module('myApp', ['ng-admin']);
+	var myApp = angular.module('myApp', ['ng-admin', 'http-auth-interceptor-buffer']);
 	myApp.constant('AUTH_EVENTS', {
 	    loginSuccess: 'auth-login-success',
 	    loginFailed: 'auth-login-failed',
@@ -64,7 +64,31 @@
 	    sessionTimeout: 'auth-session-timeout',
 	    notAuthenticated: 'auth-not-authenticated',
 	    notAuthorized: 'auth-not-authorized'
-	});
+	}).config(['$httpProvider', function ($httpProvider) {
+
+	    $httpProvider.interceptors.push(['$q', function ($q) {
+	        return {
+	            request: function request(config) {
+	                if (config.data && typeof config.data === 'object') {
+	                    //請求在這邊做處理，下方針對請求的資料打包
+	                    config.data = serialize(config.data);
+	                    //serialize 序列化的程式碼可以參考下方
+	                }
+	                return config || $q.when(config);
+	            }
+	        };
+	    }]);
+
+	    var serialize = function serialize(obj, prefix) {
+	        var str = [];
+	        for (var p in obj) {
+	            var k = prefix ? prefix + "[" + p + "]" : p,
+	                v = obj[p];
+	            str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v));
+	        }
+	        return str.join("&");
+	    };
+	}]);
 
 	__webpack_require__(3);
 
@@ -73,10 +97,11 @@
 	// custom controllers
 	myApp.controller('username', ['$scope', '$window', '$rootScope', '$state', 'Auth', function ($scope, $window, $rootScope, $state, Auth) {
 	    // used in header.html
+
 	    $scope.username = sessionStorage.getItem('name');
+	    //在初次载入时controle在数据未获取时不会执行, 所以在这里添加侦听登录事件将无法响应
 	    $rootScope.$on('event:auth-loginRequired', function () {
 
-	        //$window.location.href = "./login.html";
 	        console.log("登录过期, 请重新登录!");
 	        //$state.go('login')
 	    });
@@ -111,8 +136,9 @@
 	    }
 	}])*/
 
-	myApp.run(['Restangular', '$location', function (Restangular, $location) {
+	myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', function (Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http) {
 
+	    //只会在初始化时执行,登出后不执行.
 	    var token = sessionStorage.getItem('token');
 	    if (token) {
 	        Restangular.setDefaultHeaders({
@@ -121,13 +147,53 @@
 	        });
 	    } else {
 	        //location.href=('./#/login');
-	        //$location.path('/login');
+	        console.log('need login');
+	        $location.path('/login');
 	    }
 
-	    Restangular.setErrorInterceptor(function (resp) {
-	        console.log(resp);
-	        $location.path('/login');
-	        return false;
+	    $rootScope.$on("$locationChangeStart", function (event, next, current) {
+
+	        //record the interrupt url for resolve.
+	        Auth.next = next;
+	        /*if (!next.match(/login$/)) {
+	            $location.path('/login');
+	        }*/
+	    });
+
+	    $rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams) {
+
+	        if (Auth.old && toState.name == Auth.old.split("/#/")[1]) {
+	            event.preventDefault();
+	        }
+	    });
+
+	    Restangular.setErrorInterceptor(function (response, deferred, responseHandler) {
+	        var config = response.config || {};
+	        switch (response.status) {
+	            case 401:
+	                Auth.refreshAccesstoken(config).then(function (cfg) {
+	                    // Repeat the request and then call the handlers the usual way.
+	                    $http(cfg).then(responseHandler, deferred.reject);
+	                    // Be aware that no request interceptors are called this way.
+	                }, function () {
+	                    Auth.loginRequired(config).then(responseHandler, deferred.reject);
+	                    //$rootScope.$broadcast('event:auth-loginRequired', deferred.reject);
+	                });
+	                return false; // error handled
+	            case 400:
+	                if (response.data.error == "token_not_provided") {
+
+	                    //resolve the stat.
+	                    Auth.loginRequired(config).then(function (data) {
+	                        //only change the url.                       
+	                        $location.path(Auth.old.split("/#/")[1]).replace();
+	                        responseHandler(data);
+	                    }, deferred.reject);
+	                    //$rootScope.$broadcast('event:auth-loginRequired', deferred.reject);
+	                }
+	                return false; // error handle
+	        }
+	        return true; // error not handled
 	    });
 	}]);
 
@@ -168,7 +234,6 @@
 	            };
 	            $rootScope.$broadcast('event:auth-loginConfirmed', data);
 	            httpBuffer.retryAll(updater);
-	            console.log(updater);
 	        },
 
 	        /**
@@ -224,7 +289,7 @@
 	                if (!config.ignoreAuthModule) {
 	                    switch (rejection.status) {
 
-	                        case 401:
+	                        case 405:
 	                            var deferred = $q.defer();
 	                            httpBuffer.append(config, deferred);
 	                            $rootScope.$broadcast('event:auth-loginRequired', rejection);
@@ -310,8 +375,9 @@
 
 	'use strict';
 
-	angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH_EVENTS', '$state', 'authBackService', 'Restangular', function ($http, $rootScope, $window, AUTH_EVENTS, $state, authBackService, Restangular) {
+	angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH_EVENTS', '$state', 'Restangular', '$q', 'httpBuffer', '$location', 'progression', function ($http, $rootScope, $window, AUTH_EVENTS, $state, Restangular, $q, httpBuffer, $location, progression) {
 	    var authService = {};
+	    var restUrl = "http://lumen.app/";
 	    authService.restConfig = {
 	        headers: {
 	            'Content-Type': 'application/x-www-form-urlencoded'
@@ -324,8 +390,7 @@
 	            "email": "darkw1ng@gmail.com",
 	            "password": "secret"
 	        };
-	        console.log(credentials);
-	        $http.post('http://lumen.app/auth/login', credentials, authService.restConfig).success(function (data) {
+	        $http.post(restUrl + 'auth/login', credentials, authService.restConfig).success(function (data) {
 	            if (data.token) {
 	                var loginData = data;
 	                sessionStorage.clear();
@@ -337,13 +402,19 @@
 	                });
 
 	                $rootScope.currentUser = loginData.name;
-	                $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-	                authBackService.loginConfirmed('success', function (config) {
+
+	                authService.loginConfirmed('success', function (config) {
 	                    config.headers["Authorization"] = 'Bearer ' + data.token;
-	                    console.log("???", data.token);
-	                    //config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	                    config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
 	                    return config;
 	                });
+	                //$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
+	                /*authBackService.loginConfirmed('success', function(config) {
+	                    config.headers["Authorization"] = 'Bearer ' + data.token;
+	                    console.log("???", data.token)
+	                        //config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	                    return config
+	                })*/
 	                if (typeof success == "function") success(loginData);
 	            }
 	            /*
@@ -354,14 +425,14 @@
 	                                    if (user.username == loginData.username && user.password == loginData.username) {
 	                                        //set the browser session, to avoid relogin on refresh
 	                                        $window.sessionStorage["userInfo"] = JSON.stringify(loginData);
-	                                          //delete password not to be seen clientside 
+	                                         //delete password not to be seen clientside 
 	                                        delete loginData.password;
-	                                          //update current user into the Session service or $rootScope.currentUser
+	                                         //update current user into the Session service or $rootScope.currentUser
 	                                        //whatever you prefer
 	                                        Session.create(loginData);
 	                                        //or
 	                                        $rootScope.currentUser = loginData;
-	                                          //fire event of successful login
+	                                         //fire event of successful login
 	                                        $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 	                                        //run success function
 	                                        success(loginData);
@@ -375,6 +446,15 @@
 	        });
 	    };
 
+	    authService.loginConfirmed = function (data, configUpdater) {
+	        var updater = configUpdater || function (config) {
+	            return config;
+	        };
+
+	        $rootScope.$broadcast('event:auth-loginConfirmed', data);
+	        "success";
+	        httpBuffer.retryAll(updater);
+	    },
 	    //check if the user is authenticated
 	    authService.isLoggedIn = function (user) {
 
@@ -392,14 +472,56 @@
 	        return !!token;
 	    };
 
-	    //check if the user is authorized to access the next route
-	    //this function can be also used on element level
-	    //e.g. <p ng-if="isAuthorized(authorizedRoles)">show this only to admins</p>
 	    authService.isAuthorized = function (authorizedRoles) {
 	        return authService.isAuthenticated();
 	    };
 
+	    authService.refreshAccesstoken = function (config) {
+
+	        var token = sessionStorage.getItem("token"),
+	            token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjcsImlzcyI6Imh0dHA6XC9cL2x1bWVuLmFwcFwvYXV0aFwvbG9naW4iLCJpYXQiOiIxNDU4OTI5NDEyIiwiZXhwIjoiMTQ1ODkzMzAxMiIsIm5iZiI6IjE0NTg5Mjk0MTIiLCJqdGkiOiJmMTQ2MzI0YmU3ZGVmMGYyNDVlZDIxNmM2MWJhYmM2ZiJ9.JtbbeDZAW7ZhjedHJSc8uLlrtf9HPbOWNVmriRLC2_I",
+	            user = sessionStorage.getItem("name");
+
+	        var deferred = $q.defer();
+	        var req = {
+	            method: 'POST',
+	            url: restUrl + 'auth/refresh',
+	            headers: {
+	                'Content-Type': 'application/x-www-form-urlencoded',
+	                'Authorization': 'Bearer ' + token
+	            },
+	            data: { test: 'test' }
+	        };
+
+	        $http(req).then(function successCallback(response) {
+
+	            var token = response.data.token;
+	            sessionStorage.setItem("token", token);
+	            config.headers["Authorization"] = 'Bearer ' + token;
+	            config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	            Restangular.setDefaultHeaders({
+	                'Content-Type': 'application/x-www-form-urlencoded',
+	                'Authorization': 'Bearer ' + token
+	            });
+	            return deferred.resolve(config);
+	        }, function errorCallback(response) {
+	            return deferred.reject(response);
+	        });
+	        return deferred.promise;
+	    };
+
 	    //log out the user and broadcast the logoutSuccess event
+	    authService.loginRequired = function (config) {
+
+	        var deferred = $q.defer();
+	        authService.old = authService.next;
+	        httpBuffer.append(config, deferred);
+	        //$state.go('login')
+	        $location.path('login');
+	        progression.done();
+	        return deferred.promise;
+	    };
+
 	    authService.logout = function () {
 
 	        sessionStorage.clear();
@@ -476,13 +598,13 @@
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Posters Galore Login</title>\r\n        <meta charset=\"utf-8\">\r\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\r\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\r\n</head>\r\n<body>\r\n     <div class=\"main\">\r\n        <div class=\"login-form\">\r\n            <h1>Posters Galore Member Login</h1>\r\n            \r\n            <form ng-submit=\"submit(user)\">\r\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\r\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\r\n                <div class=\"submit\">\r\n                    <input type=\"submit\" value=\"Log In\" >\r\n                </div>\r\n                <p><a href=\"#\">Hint: John / Password</a></p>\r\n            </form>\r\n        </div>\r\n         <!-- start-copyright -->\r\n        <div class=\"copy-right\">\r\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\r\n        </div>\r\n        <!-- end-copyright -->\r\n    </div>\r\n    <script type=\"application/x-javascript\">\r\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\r\n    function hideURLbar(){\r\n        window.scrollTo(0,1);\r\n    }\r\n    </script>\r\n</body>\r\n</html>";
+	module.exports = "<!DOCTYPE html>\n<html>\n<head>\n    <title>Posters Galore Login</title>\n        <meta charset=\"utf-8\">\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\n</head>\n<body>\n     <div class=\"main\">\n        <div class=\"login-form\">\n            <h1>Posters Galore Member Login</h1>\n            \n            <form ng-submit=\"submit(user)\">\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\n                <div class=\"submit\">\n                    <input type=\"submit\" value=\"Log In\" >\n                </div>\n                <p><a href=\"#\">Hint: John / Password</a></p>\n            </form>\n        </div>\n         <!-- start-copyright -->\n        <div class=\"copy-right\">\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\n        </div>\n        <!-- end-copyright -->\n    </div>\n    <script type=\"application/x-javascript\">\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\n    function hideURLbar(){\n        window.scrollTo(0,1);\n    }\n    </script>\n</body>\n</html>";
 
 /***/ },
 /* 6 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"navbar-header\">\r\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n    </button>\r\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\r\n</div>\r\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\r\n    <li>\r\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\r\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\r\n        </a>\r\n    </li>\r\n    <li uib-dropdown ng-controller=\"username\">\r\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\r\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\r\n        </a>\r\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\r\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\r\n        </ul>\r\n    </li>\r\n</ul>";
+	module.exports = "<div class=\"navbar-header\">\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n    </button>\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\n</div>\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\n    <li>\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\n        </a>\n    </li>\n    <li uib-dropdown ng-controller=\"username\">\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\n        </a>\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\n        </ul>\n    </li>\n</ul>";
 
 /***/ }
 /******/ ]);

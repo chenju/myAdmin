@@ -17,7 +17,6 @@ angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
             };
             $rootScope.$broadcast('event:auth-loginConfirmed', data);
             httpBuffer.retryAll(updater);
-            console.log(updater)
         },
 
         /**
@@ -74,7 +73,7 @@ angular.module('http-auth-interceptor', ['http-auth-interceptor-buffer'])
                 if (!config.ignoreAuthModule) {
                     switch (rejection.status) {
 
-                        case 401:
+                        case 405:
                             var deferred = $q.defer();
                             httpBuffer.append(config, deferred);
                             $rootScope.$broadcast('event:auth-loginRequired', rejection);
@@ -118,6 +117,7 @@ angular.module('http-auth-interceptor-buffer', [])
         }
         $http = $http || $injector.get('$http');
         $http(config).then(successCallback, errorCallback);
+        
     }
 
     return {
