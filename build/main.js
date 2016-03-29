@@ -202,10 +202,15 @@
 	    var admin = nga.application('My First Admin').baseApiUrl('http://lumen.app/');
 
 	    // add entities
-	    var posts = nga.entity('posts').identifier(nga.field('post_id'));;
+	    var posts = nga.entity('posts').identifier(nga.field('post_id'));
 	    admin.addEntity(posts);
 
 	    posts.listView().fields([nga.field('title'), nga.field('post_id')]);
+
+	    var users = nga.entity('users').identifier(nga.field('id'));
+	    admin.addEntity(users);
+
+	    users.listView().fields([nga.field('name'), nga.field('email')]);
 
 	    admin.header(__webpack_require__(6));
 	    nga.configure(admin);
@@ -400,7 +405,6 @@
 	                    'Content-Type': 'application/x-www-form-urlencoded',
 	                    'Authorization': 'Bearer ' + data.token
 	                });
-
 	                $rootScope.currentUser = loginData.name;
 
 	                authService.loginConfirmed('success', function (config) {
@@ -408,13 +412,6 @@
 	                    config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
 	                    return config;
 	                });
-	                //$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-	                /*authBackService.loginConfirmed('success', function(config) {
-	                    config.headers["Authorization"] = 'Bearer ' + data.token;
-	                    console.log("???", data.token)
-	                        //config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-	                    return config
-	                })*/
 	                if (typeof success == "function") success(loginData);
 	            }
 	            /*
@@ -454,7 +451,7 @@
 	        $rootScope.$broadcast('event:auth-loginConfirmed', data);
 	        "success";
 	        httpBuffer.retryAll(updater);
-	    },
+	    };
 	    //check if the user is authenticated
 	    authService.isLoggedIn = function (user) {
 
@@ -479,7 +476,6 @@
 	    authService.refreshAccesstoken = function (config) {
 
 	        var token = sessionStorage.getItem("token"),
-	            token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjcsImlzcyI6Imh0dHA6XC9cL2x1bWVuLmFwcFwvYXV0aFwvbG9naW4iLCJpYXQiOiIxNDU4OTI5NDEyIiwiZXhwIjoiMTQ1ODkzMzAxMiIsIm5iZiI6IjE0NTg5Mjk0MTIiLCJqdGkiOiJmMTQ2MzI0YmU3ZGVmMGYyNDVlZDIxNmM2MWJhYmM2ZiJ9.JtbbeDZAW7ZhjedHJSc8uLlrtf9HPbOWNVmriRLC2_I",
 	            user = sessionStorage.getItem("name");
 
 	        var deferred = $q.defer();

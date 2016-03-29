@@ -163,12 +163,20 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         .baseApiUrl('http://lumen.app/');
 
     // add entities
-    var posts = nga.entity('posts').identifier(nga.field('post_id'));;
+    var posts = nga.entity('posts').identifier(nga.field('post_id'));
     admin.addEntity(posts);
 
     posts.listView().fields([
         nga.field('title'),
         nga.field('post_id')
+    ])
+
+    var users = nga.entity('users').identifier(nga.field('id'));
+    admin.addEntity(users);
+
+    users.listView().fields([
+        nga.field('name'),
+        nga.field('email')
     ])
 
 
