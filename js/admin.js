@@ -167,18 +167,30 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     admin.addEntity(posts);
 
     posts.listView().fields([
+        nga.field('title').isDetailLink(true),
+        nga.field('post_id')
+    ]).listActions(['show', 'delete'])
+
+    posts.showView().fields([
         nga.field('title'),
         nga.field('post_id')
+
     ])
 
     var users = nga.entity('users').identifier(nga.field('id'));
     admin.addEntity(users);
 
     users.listView().fields([
+        nga.field('name').isDetailLink(true),
+        nga.field('email'),
+        nga.field('id')
+    ])//.listActions(['show', 'delete'])
+
+    users.showView().fields([
         nga.field('name'),
         nga.field('email')
-    ])
 
+    ])
 
     admin.header(require('./header.html'));
     nga.configure(admin);
