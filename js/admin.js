@@ -89,11 +89,10 @@ myApp.config(['$stateProvider', require('./login/login')]);
 }])*/
 
 
-
-
-myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state','$http',function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state,$http) {
+myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike',function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http,$httpParamSerializerJQLike) {
 
     //只会在初始化时执行,登出后不执行.
+
     var token = sessionStorage.getItem('token');
     if (token) {
         Restangular.setDefaultHeaders({
@@ -110,19 +109,28 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
     $rootScope.$on("$locationChangeStart", function(event, next, current) {
 
         //record the interrupt url for resolve.
-        Auth.next= next
-        /*if (!next.match(/login$/)) {
-            $location.path('/login');
-        }*/
+        Auth.next = next
+            /*if (!next.match(/login$/)) {
+                $location.path('/login');
+            }*/
     });
-    
+
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
 
-        if(Auth.old&&toState.name==Auth.old.split("/#/")[1]){
-        event.preventDefault();
+        if (Auth.old && toState.name == Auth.old.split("/#/")[1]) {
+            event.preventDefault();
         }
 
 
+    });
+
+    Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig,data) {
+        return {
+          element: element,
+          params: params,
+          headers: headers,
+          data: $httpParamSerializerJQLike(data)
+        };
     });
 
 
@@ -143,12 +151,12 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
                 if (response.data.error == "token_not_provided") {
 
                     //resolve the stat. 
-                    Auth.loginRequired(config).then(function(data){
-                        //only change the url.                        
-                        $location.path(Auth.old.split("/#/")[1]).replace()
-                        responseHandler(data)
-                    }, deferred.reject)
-                    //$rootScope.$broadcast('event:auth-loginRequired', deferred.reject);
+                    Auth.loginRequired(config).then(function(data) {
+                            //only change the url.                        
+                            $location.path(Auth.old.split("/#/")[1]).replace()
+                            responseHandler(data)
+                        }, deferred.reject)
+                        //$rootScope.$broadcast('event:auth-loginRequired', deferred.reject);
                 }
                 return false; // error handle
         }
@@ -180,11 +188,19 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     var users = nga.entity('users').identifier(nga.field('id'));
     admin.addEntity(users);
 
-    users.listView().fields([
-        nga.field('name').isDetailLink(true),
+
+    users.creationView().fields([
+        nga.field('name'),
         nga.field('email'),
-        nga.field('id')
-    ])//.listActions(['show', 'delete'])
+        nga.field('password')
+    ])
+
+
+    users.listView().fields([
+            nga.field('name').isDetailLink(true),
+            nga.field('email'),
+            nga.field('id')
+        ]) //.listActions(['show', 'delete'])
 
     users.showView().fields([
         nga.field('name'),

@@ -136,9 +136,10 @@
 	    }
 	}])*/
 
-	myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', function (Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http) {
+	myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike', function (Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http, $httpParamSerializerJQLike) {
 
 	    //只会在初始化时执行,登出后不执行.
+
 	    var token = sessionStorage.getItem('token');
 	    if (token) {
 	        Restangular.setDefaultHeaders({
@@ -165,6 +166,15 @@
 	        if (Auth.old && toState.name == Auth.old.split("/#/")[1]) {
 	            event.preventDefault();
 	        }
+	    });
+
+	    Restangular.setFullRequestInterceptor(function (element, operation, route, url, headers, params, httpConfig, data) {
+	        return {
+	            element: element,
+	            params: params,
+	            headers: headers,
+	            data: $httpParamSerializerJQLike(data)
+	        };
 	    });
 
 	    Restangular.setErrorInterceptor(function (response, deferred, responseHandler) {
@@ -211,6 +221,8 @@
 
 	    var users = nga.entity('users').identifier(nga.field('id'));
 	    admin.addEntity(users);
+
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password')]);
 
 	    users.listView().fields([nga.field('name').isDetailLink(true), nga.field('email'), nga.field('id')]); //.listActions(['show', 'delete'])
 
