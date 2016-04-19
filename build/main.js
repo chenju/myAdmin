@@ -221,8 +221,13 @@
 
 	    var users = nga.entity('users').identifier(nga.field('id'));
 	    admin.addEntity(users);
+	    var roles = nga.entity('roles');
+	    admin.addEntity(roles);
 
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password')]);
+	    admin.addEntity(roles);
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role', 'choices').choices([{ label: 'accepted', value: 'accepted' }, { label: 'rejected', value: 'rejected' }, { label: 'pending', value: 'pending' }])]);
+
+	    users.editionView().fields(users.creationView().fields());
 
 	    users.listView().fields([nga.field('name').isDetailLink(true), nga.field('email'), nga.field('id')]); //.listActions(['show', 'delete'])
 
@@ -438,14 +443,14 @@
 	                                    if (user.username == loginData.username && user.password == loginData.username) {
 	                                        //set the browser session, to avoid relogin on refresh
 	                                        $window.sessionStorage["userInfo"] = JSON.stringify(loginData);
-	                                         //delete password not to be seen clientside 
+	                                          //delete password not to be seen clientside 
 	                                        delete loginData.password;
-	                                         //update current user into the Session service or $rootScope.currentUser
+	                                          //update current user into the Session service or $rootScope.currentUser
 	                                        //whatever you prefer
 	                                        Session.create(loginData);
 	                                        //or
 	                                        $rootScope.currentUser = loginData;
-	                                         //fire event of successful login
+	                                          //fire event of successful login
 	                                        $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 	                                        //run success function
 	                                        success(loginData);
@@ -610,13 +615,13 @@
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = "<!DOCTYPE html>\n<html>\n<head>\n    <title>Posters Galore Login</title>\n        <meta charset=\"utf-8\">\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\n</head>\n<body>\n     <div class=\"main\">\n        <div class=\"login-form\">\n            <h1>Posters Galore Member Login</h1>\n            \n            <form ng-submit=\"submit(user)\">\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\n                <div class=\"submit\">\n                    <input type=\"submit\" value=\"Log In\" >\n                </div>\n                <p><a href=\"#\">Hint: John / Password</a></p>\n            </form>\n        </div>\n         <!-- start-copyright -->\n        <div class=\"copy-right\">\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\n        </div>\n        <!-- end-copyright -->\n    </div>\n    <script type=\"application/x-javascript\">\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\n    function hideURLbar(){\n        window.scrollTo(0,1);\n    }\n    </script>\n</body>\n</html>";
+	module.exports = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Posters Galore Login</title>\r\n        <meta charset=\"utf-8\">\r\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\r\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\r\n</head>\r\n<body>\r\n     <div class=\"main\">\r\n        <div class=\"login-form\">\r\n            <h1>Posters Galore Member Login</h1>\r\n            \r\n            <form ng-submit=\"submit(user)\">\r\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\r\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\r\n                <div class=\"submit\">\r\n                    <input type=\"submit\" value=\"Log In\" >\r\n                </div>\r\n                <p><a href=\"#\">Hint: John / Password</a></p>\r\n            </form>\r\n        </div>\r\n         <!-- start-copyright -->\r\n        <div class=\"copy-right\">\r\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\r\n        </div>\r\n        <!-- end-copyright -->\r\n    </div>\r\n    <script type=\"application/x-javascript\">\r\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\r\n    function hideURLbar(){\r\n        window.scrollTo(0,1);\r\n    }\r\n    </script>\r\n</body>\r\n</html>";
 
 /***/ },
 /* 6 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"navbar-header\">\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n    </button>\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\n</div>\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\n    <li>\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\n        </a>\n    </li>\n    <li uib-dropdown ng-controller=\"username\">\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\n        </a>\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\n        </ul>\n    </li>\n</ul>";
+	module.exports = "<div class=\"navbar-header\">\r\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n    </button>\r\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\r\n</div>\r\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\r\n    <li>\r\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\r\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\r\n        </a>\r\n    </li>\r\n    <li uib-dropdown ng-controller=\"username\">\r\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\r\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\r\n        </a>\r\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\r\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\r\n        </ul>\r\n    </li>\r\n</ul>";
 
 /***/ }
 /******/ ]);

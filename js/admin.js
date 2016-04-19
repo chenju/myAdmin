@@ -187,13 +187,25 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
 
     var users = nga.entity('users').identifier(nga.field('id'));
     admin.addEntity(users);
+    var roles = nga.entity('roles')
+    admin.addEntity(roles);
 
-
+    admin.addEntity(roles);
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
-        nga.field('password')
+        nga.field('password'),
+        nga.field('role','choices')
+        .choices([
+                { label: 'accepted', value: 'accepted' },
+                { label: 'rejected', value: 'rejected' },
+                { label: 'pending', value: 'pending' }
+        ])
+
+        
     ])
+
+    users.editionView().fields(users.creationView().fields());
 
 
     users.listView().fields([
