@@ -225,20 +225,23 @@
 	    admin.addEntity(roles);
 
 	    roles.listView().fields([nga.field('title')]);
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role', 'choice').choices(nga.field('roles'))
-	    /*.choices(function(entry) {
-	            return roles.filter(function (c) {
-	                return c.value === entry.values.title;
-	            });
-	        })*/
 
-	    ]);
+	    var subCategories = [{ category: ['User'], label: 'Computers', value: 'computers' }, { category: 'User', label: 'Gadgets', value: 'gadgets' }, { category: 'lifestyle', label: 'Travel', value: 'travel' }, { category: 'lifestyle', label: 'Fitness', value: 'fitness' }];
+
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role', 'choice').choices(function (entry) {
+	        return subCategories.filter(function (c) {
+	            console.log(entry.values.role);
+	            return c.category === entry.values.role[0];
+	        });
+	    })]);
 
 	    users.editionView().fields(users.creationView().fields());
 
 	    users.listView().fields([nga.field('name').isDetailLink(true), nga.field('email'), nga.field('id')]); //.listActions(['show', 'delete'])
 
 	    users.showView().fields([nga.field('name'), nga.field('email')]);
+
+	    //myApp.directive('approveReview', require('approveReview'));
 
 	    admin.header(__webpack_require__(6));
 	    nga.configure(admin);

@@ -89,7 +89,7 @@ myApp.config(['$stateProvider', require('./login/login')]);
 }])*/
 
 
-myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike',function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http,$httpParamSerializerJQLike) {
+myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike', function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http, $httpParamSerializerJQLike) {
 
     //只会在初始化时执行,登出后不执行.
 
@@ -124,12 +124,12 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
 
     });
 
-    Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig,data) {
+    Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
         return {
-          element: element,
-          params: params,
-          headers: headers,
-          data: $httpParamSerializerJQLike(data)
+            element: element,
+            params: params,
+            headers: headers,
+            data: $httpParamSerializerJQLike(data)
         };
     });
 
@@ -193,19 +193,28 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     roles.listView().fields([
         nga.field('title')
     ])
+
+    var subCategories = [
+        { category: 'User', label: 'Computers', value: 'computers' },
+        { category: 'User', label: 'Gadgets', value: 'gadgets' },
+        { category: 'lifestyle', label: 'Travel', value: 'travel' },
+        { category: 'lifestyle', label: 'Fitness', value: 'fitness' }
+    ];
+
+
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
         nga.field('password'),
-        nga.field('role','choice')
-        .choices(nga.field('roles'))
-        /*.choices(function(entry) {
-                return roles.filter(function (c) {
-                    return c.value === entry.values.title;
-                });
-            })*/
+        nga.field('role', 'choice')
+        .choices(function(entry) {
+            return subCategories.filter(function(c) {
+                console.log(entry.values.role)
+                return c.category === entry.values.role[0];
+            });
+        })
 
-        
+
     ])
 
     users.editionView().fields(users.creationView().fields());
@@ -222,6 +231,8 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         nga.field('email')
 
     ])
+
+    //myApp.directive('approveReview', require('approveReview'));
 
     admin.header(require('./header.html'));
     nga.configure(admin);
