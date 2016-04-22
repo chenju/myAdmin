@@ -88,11 +88,50 @@ myApp.config(['$stateProvider', require('./login/login')]);
     }
 }])*/
 
-/*app.factory('roles', function() {
+/*myApp.provider('roles_c', ['Restangular', function(Restangular) {
     return {
-        roles: []
+        roles: ['admin', 'User', 'readc']
     }
-});*/
+}]);*/
+
+myApp.config(function($provide) {
+    $provide.provider('magicNumberService',   {   // internal configuration data; configured through setter function
+          
+        magicNumber:  null,
+
+           // configuration method for setting the magic number
+          setMagicNumber:   function(magicNumber)  {     this.magicNumber  =  magicNumber;   },
+
+          $get:   function(magicNumber, Restangular)  {
+            // use the magic number explicitly provided through "setMagicNumber" or
+            // otherwise default to the injected "magicNumber" constant
+
+           Restangular.allUrl('roles').getList()
+            .then(function(response) {
+                console.log(response)
+                var toBeReturnedMagicNumber = response.data.map(fuck)
+
+                function fuck(v) {
+                    return { label: v.title, value: v.id };
+                }
+
+            })
+
+
+               
+            //var toBeReturnedMagicNumber = this.magicNumber || magicNumber;
+
+                // return the service instance
+                
+            return  {      
+                getMagicNumber:   function()  {        
+                    return toBeReturnedMagicNumber;      
+                }    
+            };  
+        }
+    })
+});
+
 
 
 myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike', function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http, $httpParamSerializerJQLike) {
@@ -171,12 +210,14 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
 }])
 
 
-myApp.config(['NgAdminConfigurationProvider', function(nga) {
+myApp.config(['NgAdminConfigurationProvider', 'magicNumberServiceProvider', function(nga, magic) {
     // create the admin application
     var admin = nga.application('My First Admin')
         .baseApiUrl('http://lumen.app/');
 
-    // add entities
+
+    console.log(magic)
+        // add entities
     var posts = nga.entity('posts').identifier(nga.field('post_id'));
     admin.addEntity(posts);
 
@@ -210,16 +251,16 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     //var a =roles.values.title;
     console.log(roles)
 
-    
+
 
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
         nga.field('password'),
-        nga.field('role', 'choice')
+        nga.field('role_id', 'choice')
         //nga.field('role')
-        .choices(function(entry){
-          return entry.values.roles;
+        .choices(function(entry) {
+            return entry.values.roles;
         })
         //.template('<custom-choice role="entry"></custom-choice>')
         /*.choices(function(entry) {
@@ -232,16 +273,16 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
 
     ])
 
-    users.creationView().prepare(['Restangular', 'entry', function(Restangular, entry) {
-        
+    users.editionView().prepare(['Restangular', 'entry', function(Restangular, entry) {
+
         return Restangular.allUrl('roles').getList()
             .then(function(response) {
                 console.log(response)
                 entry.values.roles = response.data.map(fuck)
                 console.log(entry.values.roles)
 
-                function fuck(v){
-                   return {label:v.title,value:v.title};
+                function fuck(v) {
+                    return { label: v.title, value: v.id };
                 }
 
             })
