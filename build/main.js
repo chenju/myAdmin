@@ -136,6 +136,12 @@
 	    }
 	}])*/
 
+	/*app.factory('roles', function() {
+	    return {
+	        roles: []
+	    }
+	});*/
+
 	myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike', function (Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http, $httpParamSerializerJQLike) {
 
 	    //只会在初始化时执行,登出后不执行.
@@ -226,14 +232,38 @@
 
 	    roles.listView().fields([nga.field('title')]);
 
-	    var subCategories = [{ category: ['User'], label: 'Computers', value: 'computers' }, { category: 'User', label: 'Gadgets', value: 'gadgets' }, { category: 'lifestyle', label: 'Travel', value: 'travel' }, { category: 'lifestyle', label: 'Fitness', value: 'fitness' }];
+	    var subCategories = [{ category: 'User', label: 'Computers', value: 'computers' }, { category: 'User', label: 'Gadgets', value: 'gadgets' }, { category: 'lifestyle', label: 'Travel', value: 'travel' }, { category: 'lifestyle', label: 'Fitness', value: 'fitness' }];
 
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role', 'choice').choices(function (entry) {
-	        return subCategories.filter(function (c) {
-	            console.log(entry.values.role);
+	    //var a =roles.values.title;
+	    console.log(roles);
+
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role', 'choice')
+	    //nga.field('role')
+	    .choices(function (entry) {
+	        return entry.values.roles;
+	    })
+	    //.template('<custom-choice role="entry"></custom-choice>')
+	    /*.choices(function(entry) {
+	        return subCategories.filter(function(c) {
+	            console.log(entry.values.role)
 	            return c.category === entry.values.role[0];
 	        });
-	    })]);
+	    })*/
+
+	    ]);
+
+	    users.creationView().prepare(['Restangular', 'entry', function (Restangular, entry) {
+
+	        return Restangular.allUrl('roles').getList().then(function (response) {
+	            console.log(response);
+	            entry.values.roles = response.data.map(fuck);
+	            console.log(entry.values.roles);
+
+	            function fuck(v) {
+	                return { label: v.title, value: v.title };
+	            }
+	        });
+	    }]);
 
 	    users.editionView().fields(users.creationView().fields());
 

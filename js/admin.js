@@ -88,6 +88,12 @@ myApp.config(['$stateProvider', require('./login/login')]);
     }
 }])*/
 
+/*app.factory('roles', function() {
+    return {
+        roles: []
+    }
+});*/
+
 
 myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q', '$state', '$http', '$httpParamSerializerJQLike', function(Restangular, $location, Auth, $rootScope, httpBuffer, $q, $state, $http, $httpParamSerializerJQLike) {
 
@@ -201,21 +207,45 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         { category: 'lifestyle', label: 'Fitness', value: 'fitness' }
     ];
 
+    //var a =roles.values.title;
+    console.log(roles)
+
+    
 
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
         nga.field('password'),
         nga.field('role', 'choice')
-        .choices(function(entry) {
+        //nga.field('role')
+        .choices(function(entry){
+          return entry.values.roles;
+        })
+        //.template('<custom-choice role="entry"></custom-choice>')
+        /*.choices(function(entry) {
             return subCategories.filter(function(c) {
                 console.log(entry.values.role)
                 return c.category === entry.values.role[0];
             });
-        })
+        })*/
 
 
     ])
+
+    users.creationView().prepare(['Restangular', 'entry', function(Restangular, entry) {
+        
+        return Restangular.allUrl('roles').getList()
+            .then(function(response) {
+                console.log(response)
+                entry.values.roles = response.data.map(fuck)
+                console.log(entry.values.roles)
+
+                function fuck(v){
+                   return {label:v.title,value:v.title};
+                }
+
+            })
+    }]);
 
     users.editionView().fields(users.creationView().fields());
 
