@@ -106,16 +106,16 @@ myApp.config(function($provide) {
             // use the magic number explicitly provided through "setMagicNumber" or
             // otherwise default to the injected "magicNumber" constant
 
-           Restangular.allUrl('roles').getList()
-            .then(function(response) {
-                console.log(response)
-                var toBeReturnedMagicNumber = response.data.map(fuck)
+            Restangular.allUrl('roles').getList()
+                .then(function(response) {
+                    console.log(response)
+                    var toBeReturnedMagicNumber = response.data.map(fuck)
 
-                function fuck(v) {
-                    return { label: v.title, value: v.id };
-                }
+                    function fuck(v) {
+                        return { label: v.title, value: v.id };
+                    }
 
-            })
+                })
 
 
                
@@ -209,15 +209,68 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
     });
 }])
 
+var base = angular.module('myAppBaseModule', [])
 
-myApp.config(['NgAdminConfigurationProvider', 'magicNumberServiceProvider', function(nga, magic) {
+base.service('serviceFoo', function() {
+    this.hello = function() {
+        /*return Restangular.allUrl('roles').getList()
+                .then(function(response) {
+                    console.log(response)
+                    entry.values.roles = response.data.map(fuck)
+                    console.log(entry.values.roles)
+
+                    function fuck(v) {
+                        return { label: v.title, value: v.id };
+                    }
+
+                })*/
+        var statuses = ['admin', 'user', 'readc'];
+        var statusChoices = statuses.map(status => ({ label: status, value: status }));
+        return statusChoices;
+    }
+    return this;
+});
+
+myApp.service('Fool', function(Restangular,$q) {
+    this.hello = function(c) {
+               var deferred = $q.defer();
+               Restangular.allUrl('roles').getList()
+                .then(function(response) {
+                    
+
+                    var choices= response.data.map(fuck);
+                    deferred.resolve(choices)
+
+                    function fuck(v) {
+                        return { label: v.title, value: v.id };
+                    }
+                })
+                return deferred.promise;
+        //var statuses = ['admin', 'user', 'readc'];
+        //var statusChoices = statuses.map(status => ({ label: status, value: status }));
+        //return statusChoices;
+    }
+    return this;
+});
+
+var Foo=null
+
+myApp.run(['Fool',function(Fool){
+    Foo=Fool
+}])
+
+myApp.directive('naChoiceField', require('./naChoiceField'));
+
+myApp.config(['NgAdminConfigurationProvider', function(nga) {
     // create the admin application
     var admin = nga.application('My First Admin')
         .baseApiUrl('http://lumen.app/');
 
 
-    console.log(magic)
-        // add entities
+    var base = angular.injector(['myAppBaseModule']);
+    //$provide.constant('serviceFoo', base.get('serviceFoo'));
+    //console.log(base)
+    // add entities
     var posts = nga.entity('posts').identifier(nga.field('post_id'));
     admin.addEntity(posts);
 
@@ -249,20 +302,18 @@ myApp.config(['NgAdminConfigurationProvider', 'magicNumberServiceProvider', func
     ];
 
     //var a =roles.values.title;
-    console.log(roles)
+    
 
+    var statuses = ['admin', 'user', 'readc'];
+    var statusChoices = statuses.map(status => ({ label: status, value: status }));
 
 
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
         nga.field('password'),
-        nga.field('role_id', 'choice')
-        //nga.field('role')
-        .choices(function(entry) {
-            return entry.values.roles;
-        })
-        //.template('<custom-choice role="entry"></custom-choice>')
+        nga.field('role_id')
+        .template('<na-choice-field entry="::entry" ></na-choice-field>')
         /*.choices(function(entry) {
             return subCategories.filter(function(c) {
                 console.log(entry.values.role)
@@ -272,6 +323,20 @@ myApp.config(['NgAdminConfigurationProvider', 'magicNumberServiceProvider', func
 
 
     ])
+
+    /*users.creationView().prepare(['Restangular', 'entry', 'Fool',function(Restangular, entry,Foo) {
+        return Restangular.allUrl('roles').getList()
+            .then(function(response) {
+                console.log(response)
+                choices = response.data.map(fuck)
+                //console.log(entry.values.roles)
+
+                function fuck(v) {
+                    return { label: v.title, value: v.id };
+                }
+
+            })
+    }]);*/
 
     users.editionView().prepare(['Restangular', 'entry', function(Restangular, entry) {
 
@@ -304,6 +369,9 @@ myApp.config(['NgAdminConfigurationProvider', 'magicNumberServiceProvider', func
     ])
 
     //myApp.directive('approveReview', require('approveReview'));
+
+
+
 
     admin.header(require('./header.html'));
     nga.configure(admin);

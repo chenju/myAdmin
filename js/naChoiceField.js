@@ -3,7 +3,7 @@ function updateChoices(scope, choices) {
     scope.$root.$$phase || scope.$digest();
 }
 
-function naChoiceField($compile) {
+export default function naChoiceField($compile) {
     return {
         scope: {
             'field': '&',
@@ -17,7 +17,6 @@ function naChoiceField($compile) {
         compile: function() {
             return {
                 pre: function(scope, element) {
-                    console.log(scope.entry="::entry")
                     var field = scope.field();
                     var attributes = field.attributes();
                     scope.placeholder = (attributes && attributes.placeholder) || 'FILTER_VALUES';
@@ -69,5 +68,3 @@ function naChoiceField($compile) {
 }
 
 naChoiceField.$inject = ['$compile'];
-
-export default naChoiceField;
