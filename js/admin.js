@@ -313,7 +313,7 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         nga.field('email'),
         nga.field('password'),
         nga.field('role_id')
-        .template('<na-choice-field entry="::entry" ></na-choice-field>')
+        .template('<na-choice-field field="::field" ></na-choice-field>')
         /*.choices(function(entry) {
             return subCategories.filter(function(c) {
                 console.log(entry.values.role)

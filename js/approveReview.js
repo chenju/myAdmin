@@ -8,7 +8,7 @@ function naChoiceField($compile) {
         scope: {
             'field': '&',
             'value': '=',
-            'entry':  '=?',
+            'entry':  '$',
             'datastore': '&?',
             'refresh': '&',
             'choices': '&?'
@@ -17,7 +17,8 @@ function naChoiceField($compile) {
         compile: function() {
             return {
                 pre: function(scope, element) {
-                    console.log(scope.entry="::entry")
+                    console.log(scope.entry())
+                    console.log('funk')
                     var field = scope.field();
                     var attributes = field.attributes();
                     scope.placeholder = (attributes && attributes.placeholder) || 'FILTER_VALUES';

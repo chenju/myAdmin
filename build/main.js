@@ -330,7 +330,7 @@
 	        return { label: status, value: status };
 	    });
 
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role_id').template('<na-choice-field entry="::entry" ></na-choice-field>')
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role_id').template('<na-choice-field field="::field" ></na-choice-field>')
 	    /*.choices(function(entry) {
 	        return subCategories.filter(function(c) {
 	            console.log(entry.values.role)
@@ -786,7 +786,9 @@
 	        compile: function compile() {
 	            return {
 	                pre: function pre(scope, element) {
+	                    console.log(scope.field());
 	                    var field = scope.field();
+	                    console.log(scope);
 	                    var attributes = field.attributes();
 	                    scope.placeholder = attributes && attributes.placeholder || 'FILTER_VALUES';
 	                    scope.name = field.name();
