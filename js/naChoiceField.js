@@ -28,7 +28,7 @@ export default function naChoiceField($compile) {
                             scope.value = null;
                         }
                     });
-
+                    
                     var refreshAttributes = '';
                     var itemsFilter = '| filter: {label: $select.search}';
                     if (field.type().indexOf('reference') === 0 && field.remoteComplete()) { // FIXME wrong place to do that
@@ -36,25 +36,27 @@ export default function naChoiceField($compile) {
                         refreshAttributes = 'refresh-delay="refreshDelay" refresh="refresh({ $search: $select.search })"';
                         itemsFilter = '';
                     }
+                    console.log(field.choices())
 
                     var choices = (typeof scope.choices == 'function' && scope.choices()) ? scope.choices() : (field.choices ? field.choices() : []);
 
                     var template = `
                         <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">
-                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder | translate }}">{{ $select.selected.label | translate }}</ui-select-match>
+                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder }}">{{ $select.selected.label }}</ui-select-match>
                             <ui-select-choices ${refreshAttributes} repeat="item.value as item in choices ${itemsFilter}  track by $index">
-                                {{ item.label | translate }}
+                                {{ item.label  }}
                             </ui-select-choices>
                         </ui-select>`;
 
                     scope.choices = typeof(choices) === 'function' ? choices(scope.entry) : choices;
+                    
                     element.html(template);
 
                     var select = element.children()[0];
                     for (var name in attributes) {
                         select.setAttribute(name, attributes[name]);
                     }
-
+            
                     $compile(element.contents())(scope);
                 },
                 post: function(scope) {
