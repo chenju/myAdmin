@@ -231,33 +231,32 @@ base.service('serviceFoo', function() {
     return this;
 });
 
-myApp.service('Fool', function(Restangular,$q) {
-    this.hello = function(c) {
-               var deferred = $q.defer();
-               Restangular.allUrl('roles').getList()
-                .then(function(response) {
-                    
+myApp.service('Role', function(Restangular, $q) {
 
-                    var choices= response.data.map(fuck);
-                    deferred.resolve(choices)
+    var roles = null
+    this.getRoles = function(c) {
+        var deferred = $q.defer();
+
+        if (roles == null) {
+            Restangular.allUrl('roles').getList()
+                .then(function(response) {
+
+
+                    roles = response.data.map(role=>({ label: role.title, value: role.id}));
+                    deferred.resolve(roles)
 
                     function fuck(v) {
                         return { label: v.title, value: v.id };
                     }
                 })
-                return deferred.promise;
-        //var statuses = ['admin', 'user', 'readc'];
-        //var statusChoices = statuses.map(status => ({ label: status, value: status }));
-        //return statusChoices;
+        }
+        else{
+            deferred.resolve(roles)
+        }
+        return deferred.promise;
     }
     return this;
 });
-
-var Foo=null
-
-myApp.run(['Fool',function(Fool){
-    Foo=Fool
-}])
 
 myApp.directive('naChoiceField', require('./naChoiceField'));
 
@@ -266,10 +265,6 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     var admin = nga.application('My First Admin')
         .baseApiUrl('http://lumen.app/');
 
-
-    var base = angular.injector(['myAppBaseModule']);
-    //$provide.constant('serviceFoo', base.get('serviceFoo'));
-    //console.log(base)
     // add entities
     var posts = nga.entity('posts').identifier(nga.field('post_id'));
     admin.addEntity(posts);
@@ -301,9 +296,6 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         { category: 'lifestyle', label: 'Fitness', value: 'fitness' }
     ];
 
-    //var a =roles.values.title;
-    
-
     var statuses = ['admin', 'user', 'readc'];
     var statusChoices = statuses.map(status => ({ label: status, value: status }));
 
@@ -312,16 +304,14 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         nga.field('name'),
         nga.field('email'),
         nga.field('password'),
-        nga.field('role_id','choice')
-        .choices(statusChoices)
-        .template('<na-choice-field field="::field" choices="choices"></na-choice-field>')
+        nga.field('role_id', 'choice')
+        .template('<na-choice-field field="::field" choices="choices" value="entry.values.role_id"></na-choice-field>')
         /*.choices(function(entry) {
             return subCategories.filter(function(c) {
                 console.log(entry.values.role)
                 return c.category === entry.values.role[0];
             });
         })*/
-
 
     ])
 

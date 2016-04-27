@@ -3,12 +3,12 @@ function updateChoices(scope, choices) {
     scope.$root.$$phase || scope.$digest();
 }
 
-export default function naChoiceField($compile) {
+export default function naChoiceField($compile, Role) {
     return {
         scope: {
             'field': '&',
             'value': '=',
-            'entry':  '=?',
+            'entry': '=?',
             'datastore': '&?',
             'refresh': '&',
             'choices': '&?'
@@ -28,7 +28,7 @@ export default function naChoiceField($compile) {
                             scope.value = null;
                         }
                     });
-                    
+
                     var refreshAttributes = '';
                     var itemsFilter = '| filter: {label: $select.search}';
                     if (field.type().indexOf('reference') === 0 && field.remoteComplete()) { // FIXME wrong place to do that
@@ -36,11 +36,14 @@ export default function naChoiceField($compile) {
                         refreshAttributes = 'refresh-delay="refreshDelay" refresh="refresh({ $search: $select.search })"';
                         itemsFilter = '';
                     }
-                    console.log(field.choices())
+                    var promise = Role.getRoles()
+                    promise.then(function(roles) {
 
-                    var choices = (typeof scope.choices == 'function' && scope.choices()) ? scope.choices() : (field.choices ? field.choices() : []);
 
-                    var template = `
+                        //var choices = (typeof scope.choices == 'function' && scope.choices()) ? scope.choices() : (field.choices ? field.choices() : []);
+                        var choices=roles
+
+                        var template = `
                         <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">
                             <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder }}">{{ $select.selected.label }}</ui-select-match>
                             <ui-select-choices ${refreshAttributes} repeat="item.value as item in choices ${itemsFilter}  track by $index">
@@ -48,16 +51,21 @@ export default function naChoiceField($compile) {
                             </ui-select-choices>
                         </ui-select>`;
 
-                    scope.choices = typeof(choices) === 'function' ? choices(scope.entry) : choices;
-                    
-                    element.html(template);
+                        scope.choices = typeof(choices) === 'function' ? choices(scope.entry) : choices;
 
-                    var select = element.children()[0];
-                    for (var name in attributes) {
-                        select.setAttribute(name, attributes[name]);
-                    }
-            
-                    $compile(element.contents())(scope);
+                        element.html(template);
+
+                        var select = element.children()[0];
+                        for (var name in attributes) {
+                            select.setAttribute(name, attributes[name]);
+                        }
+
+                        $compile(element.contents())(scope);
+
+                    })
+
+
+
                 },
                 post: function(scope) {
                     scope.$on('choices:update', function(e, data) {
@@ -69,4 +77,4 @@ export default function naChoiceField($compile) {
     };
 }
 
-naChoiceField.$inject = ['$compile'];
+naChoiceField.$inject = ['$compile','Role'];

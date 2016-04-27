@@ -258,10 +258,10 @@
 	                    console.log(response)
 	                    entry.values.roles = response.data.map(fuck)
 	                    console.log(entry.values.roles)
-	                      function fuck(v) {
+	                     function fuck(v) {
 	                        return { label: v.title, value: v.id };
 	                    }
-	                  })*/
+	                 })*/
 	        var statuses = ['admin', 'user', 'readc'];
 	        var statusChoices = statuses.map(function (status) {
 	            return { label: status, value: status };
@@ -271,31 +271,31 @@
 	    return this;
 	});
 
-	myApp.service('Fool', function (Restangular, $q) {
-	    this.hello = function (c) {
+	myApp.service('Role', function (Restangular, $q) {
+
+	    var roles = null;
+	    this.getRoles = function (c) {
 	        var deferred = $q.defer();
-	        Restangular.allUrl('roles').getList().then(function (response) {
 
-	            var choices = response.data.map(fuck);
-	            deferred.resolve(choices);
+	        if (roles == null) {
+	            Restangular.allUrl('roles').getList().then(function (response) {
 
-	            function fuck(v) {
-	                return { label: v.title, value: v.id };
-	            }
-	        });
+	                roles = response.data.map(function (role) {
+	                    return { label: role.title, value: role.id };
+	                });
+	                deferred.resolve(roles);
+
+	                function fuck(v) {
+	                    return { label: v.title, value: v.id };
+	                }
+	            });
+	        } else {
+	            deferred.resolve(roles);
+	        }
 	        return deferred.promise;
-	        //var statuses = ['admin', 'user', 'readc'];
-	        //var statusChoices = statuses.map(status => ({ label: status, value: status }));
-	        //return statusChoices;
 	    };
 	    return this;
 	});
-
-	var Foo = null;
-
-	myApp.run(['Fool', function (Fool) {
-	    Foo = Fool;
-	}]);
 
 	myApp.directive('naChoiceField', __webpack_require__(6));
 
@@ -303,9 +303,6 @@
 	    // create the admin application
 	    var admin = nga.application('My First Admin').baseApiUrl('http://lumen.app/');
 
-	    var base = angular.injector(['myAppBaseModule']);
-	    //$provide.constant('serviceFoo', base.get('serviceFoo'));
-	    //console.log(base)
 	    // add entities
 	    var posts = nga.entity('posts').identifier(nga.field('post_id'));
 	    admin.addEntity(posts);
@@ -323,14 +320,12 @@
 
 	    var subCategories = [{ category: 'User', label: 'Computers', value: 'computers' }, { category: 'User', label: 'Gadgets', value: 'gadgets' }, { category: 'lifestyle', label: 'Travel', value: 'travel' }, { category: 'lifestyle', label: 'Fitness', value: 'fitness' }];
 
-	    //var a =roles.values.title;
-
 	    var statuses = ['admin', 'user', 'readc'];
 	    var statusChoices = statuses.map(function (status) {
 	        return { label: status, value: status };
 	    });
 
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role_id', 'choice').choices(statusChoices).template('<na-choice-field field="::field" choices="choices"></na-choice-field>')
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role_id', 'choice').template('<na-choice-field field="::field" choices="choices" value="entry.values.role_id"></na-choice-field>')
 	    /*.choices(function(entry) {
 	        return subCategories.filter(function(c) {
 	            console.log(entry.values.role)
@@ -346,10 +341,10 @@
 	                console.log(response)
 	                choices = response.data.map(fuck)
 	                //console.log(entry.values.roles)
-	                  function fuck(v) {
+	                 function fuck(v) {
 	                    return { label: v.title, value: v.id };
 	                }
-	              })
+	             })
 	    }]);*/
 
 	    users.editionView().prepare(['Restangular', 'entry', function (Restangular, entry) {
@@ -583,14 +578,14 @@
 	                                    if (user.username == loginData.username && user.password == loginData.username) {
 	                                        //set the browser session, to avoid relogin on refresh
 	                                        $window.sessionStorage["userInfo"] = JSON.stringify(loginData);
-	                                          //delete password not to be seen clientside 
+	                                         //delete password not to be seen clientside 
 	                                        delete loginData.password;
-	                                          //update current user into the Session service or $rootScope.currentUser
+	                                         //update current user into the Session service or $rootScope.currentUser
 	                                        //whatever you prefer
 	                                        Session.create(loginData);
 	                                        //or
 	                                        $rootScope.currentUser = loginData;
-	                                          //fire event of successful login
+	                                         //fire event of successful login
 	                                        $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 	                                        //run success function
 	                                        success(loginData);
@@ -755,7 +750,7 @@
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Posters Galore Login</title>\r\n        <meta charset=\"utf-8\">\r\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\r\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\r\n</head>\r\n<body>\r\n     <div class=\"main\">\r\n        <div class=\"login-form\">\r\n            <h1>Posters Galore Member Login</h1>\r\n            \r\n            <form ng-submit=\"submit(user)\">\r\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\r\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\r\n                <div class=\"submit\">\r\n                    <input type=\"submit\" value=\"Log In\" >\r\n                </div>\r\n                <p><a href=\"#\">Hint: John / Password</a></p>\r\n            </form>\r\n        </div>\r\n         <!-- start-copyright -->\r\n        <div class=\"copy-right\">\r\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\r\n        </div>\r\n        <!-- end-copyright -->\r\n    </div>\r\n    <script type=\"application/x-javascript\">\r\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\r\n    function hideURLbar(){\r\n        window.scrollTo(0,1);\r\n    }\r\n    </script>\r\n</body>\r\n</html>";
+	module.exports = "<!DOCTYPE html>\n<html>\n<head>\n    <title>Posters Galore Login</title>\n        <meta charset=\"utf-8\">\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\n</head>\n<body>\n     <div class=\"main\">\n        <div class=\"login-form\">\n            <h1>Posters Galore Member Login</h1>\n            \n            <form ng-submit=\"submit(user)\">\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\n                <div class=\"submit\">\n                    <input type=\"submit\" value=\"Log In\" >\n                </div>\n                <p><a href=\"#\">Hint: John / Password</a></p>\n            </form>\n        </div>\n         <!-- start-copyright -->\n        <div class=\"copy-right\">\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\n        </div>\n        <!-- end-copyright -->\n    </div>\n    <script type=\"application/x-javascript\">\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\n    function hideURLbar(){\n        window.scrollTo(0,1);\n    }\n    </script>\n</body>\n</html>";
 
 /***/ },
 /* 6 */
@@ -772,7 +767,7 @@
 	    scope.$root.$$phase || scope.$digest();
 	}
 
-	function naChoiceField($compile) {
+	function naChoiceField($compile, Role) {
 	    return {
 	        scope: {
 	            'field': '&',
@@ -806,22 +801,25 @@
 	                        refreshAttributes = 'refresh-delay="refreshDelay" refresh="refresh({ $search: $select.search })"';
 	                        itemsFilter = '';
 	                    }
-	                    console.log(field.choices());
+	                    var promise = Role.getRoles();
+	                    promise.then(function (roles) {
 
-	                    var choices = typeof scope.choices == 'function' && scope.choices() ? scope.choices() : field.choices ? field.choices() : [];
+	                        //var choices = (typeof scope.choices == 'function' && scope.choices()) ? scope.choices() : (field.choices ? field.choices() : []);
+	                        var choices = roles;
 
-	                    var template = '\n                        <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">\n                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder }}">{{ $select.selected.label }}</ui-select-match>\n                            <ui-select-choices ' + refreshAttributes + ' repeat="item.value as item in choices ' + itemsFilter + '  track by $index">\n                                {{ item.label  }}\n                            </ui-select-choices>\n                        </ui-select>';
+	                        var template = '\n                        <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">\n                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder }}">{{ $select.selected.label }}</ui-select-match>\n                            <ui-select-choices ' + refreshAttributes + ' repeat="item.value as item in choices ' + itemsFilter + '  track by $index">\n                                {{ item.label  }}\n                            </ui-select-choices>\n                        </ui-select>';
 
-	                    scope.choices = typeof choices === 'function' ? choices(scope.entry) : choices;
+	                        scope.choices = typeof choices === 'function' ? choices(scope.entry) : choices;
 
-	                    element.html(template);
+	                        element.html(template);
 
-	                    var select = element.children()[0];
-	                    for (var name in attributes) {
-	                        select.setAttribute(name, attributes[name]);
-	                    }
+	                        var select = element.children()[0];
+	                        for (var name in attributes) {
+	                            select.setAttribute(name, attributes[name]);
+	                        }
 
-	                    $compile(element.contents())(scope);
+	                        $compile(element.contents())(scope);
+	                    });
 	                },
 	                post: function post(scope) {
 	                    scope.$on('choices:update', function (e, data) {
@@ -833,14 +831,14 @@
 	    };
 	}
 
-	naChoiceField.$inject = ['$compile'];
+	naChoiceField.$inject = ['$compile', 'Role'];
 	module.exports = exports['default'];
 
 /***/ },
 /* 7 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"navbar-header\">\r\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n        <span class=\"icon-bar\"></span>\r\n    </button>\r\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\r\n</div>\r\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\r\n    <li>\r\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\r\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\r\n        </a>\r\n    </li>\r\n    <li uib-dropdown ng-controller=\"username\">\r\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\r\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\r\n        </a>\r\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\r\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\r\n        </ul>\r\n    </li>\r\n</ul>";
+	module.exports = "<div class=\"navbar-header\">\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n    </button>\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\n</div>\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\n    <li>\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\n        </a>\n    </li>\n    <li uib-dropdown ng-controller=\"username\">\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\n        </a>\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\n        </ul>\n    </li>\n</ul>";
 
 /***/ }
 /******/ ]);

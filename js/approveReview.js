@@ -3,7 +3,7 @@ function updateChoices(scope, choices) {
     scope.$root.$$phase || scope.$digest();
 }
 
-function naChoiceField($compile) {
+function naChoiceField($compile,Fool) {
     return {
         scope: {
             'field': '&',
