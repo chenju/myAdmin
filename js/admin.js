@@ -42,6 +42,10 @@ require('./auth/auth')
 
 // custom API flavor
 
+var apiFlavor = require('./api_flavor');
+myApp.config(['RestangularProvider', apiFlavor.requestInterceptor]);
+myApp.config(['RestangularProvider', apiFlavor.responseInterceptor]);
+
 // custom controllers
 myApp.controller('username', ['$scope', '$window', '$rootScope', '$state', 'Auth', function($scope, $window, $rootScope, $state, Auth) { // used in header.html
 
@@ -169,14 +173,14 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
 
     });
 
-    Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
+    /*Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
         return {
             element: element,
             params: params,
             headers: headers,
             data: $httpParamSerializerJQLike(data)
         };
-    });
+    });*/
 
 
     Restangular.setErrorInterceptor(function(response, deferred, responseHandler) {

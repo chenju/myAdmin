@@ -94,6 +94,10 @@
 
 	// custom API flavor
 
+	var apiFlavor = __webpack_require__(4);
+	myApp.config(['RestangularProvider', apiFlavor.requestInterceptor]);
+	myApp.config(['RestangularProvider', apiFlavor.responseInterceptor]);
+
 	// custom controllers
 	myApp.controller('username', ['$scope', '$window', '$rootScope', '$state', 'Auth', function ($scope, $window, $rootScope, $state, Auth) {
 	    // used in header.html
@@ -114,7 +118,7 @@
 	}]);
 
 	// custom states (pages)
-	myApp.config(['$stateProvider', __webpack_require__(4)]);
+	myApp.config(['$stateProvider', __webpack_require__(5)]);
 
 	/*myApp.config(['RestangularProvider', function(RestangularProvider) {
 	    /*RestangularProvider.addElementTransformer('users', function(element) {
@@ -210,14 +214,14 @@
 	        }
 	    });
 
-	    Restangular.setFullRequestInterceptor(function (element, operation, route, url, headers, params, httpConfig, data) {
+	    /*Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
 	        return {
 	            element: element,
 	            params: params,
 	            headers: headers,
 	            data: $httpParamSerializerJQLike(data)
 	        };
-	    });
+	    });*/
 
 	    Restangular.setErrorInterceptor(function (response, deferred, responseHandler) {
 	        var config = response.config || {};
@@ -297,7 +301,7 @@
 	    return this;
 	});
 
-	myApp.directive('naChoiceField', __webpack_require__(6));
+	myApp.directive('naChoiceField', __webpack_require__(7));
 
 	myApp.config(['NgAdminConfigurationProvider', function (nga) {
 	    // create the admin application
@@ -368,7 +372,7 @@
 
 	    //myApp.directive('approveReview', require('approveReview'));
 
-	    admin.header(__webpack_require__(7));
+	    admin.header(__webpack_require__(8));
 	    nga.configure(admin);
 	}]);
 
@@ -689,6 +693,59 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	function requestInterceptor(RestangularProvider) {
+	    // use the custom query parameters function to format the API request correctly
+	    RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, params) {
+	        if (operation == "getList") {
+	            // custom pagination params
+	            if (params._page) {
+	                var start = (params._page - 1) * params._perPage;
+	                var end = params._page * params._perPage - 1;
+	                params.range = "[" + start + "," + end + "]";
+	                delete params._page;
+	                delete params._perPage;
+	            }
+	            // custom sort params
+	            if (params._sortField) {
+	                params.sort = '["' + params._sortField + '","' + params._sortDir + '"]';
+	                delete params._sortField;
+	                delete params._sortDir;
+	            }
+	            // custom filters
+	            if (params._filters) {
+	                params.filter = params._filters;
+	                delete params._filters;
+	            }
+	            if (headers['Content-Range']) {
+	                headers['X-Total-Count'] = headers['Content-Range'].split('/').pop();
+	            }
+	        }
+	        return { params: params, headers: headers };
+	    });
+	}
+
+	function responseInterceptor(RestangularProvider) {
+	    RestangularProvider.addResponseInterceptor(function (data, operation, what, url, response) {
+	        if (operation == "getList") {
+	            var contentRange = response.headers('Content-Range');
+	            response.totalCount = contentRange.split('/')[1];
+	        }
+	        return data;
+	    });
+	}
+
+	exports["default"] = { requestInterceptor: requestInterceptor, responseInterceptor: responseInterceptor };
+	module.exports = exports["default"];
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -699,7 +756,7 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _loginTemplateHtml = __webpack_require__(5);
+	var _loginTemplateHtml = __webpack_require__(6);
 
 	var _loginTemplateHtml2 = _interopRequireDefault(_loginTemplateHtml);
 
@@ -747,13 +804,13 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = "<!DOCTYPE html>\n<html>\n<head>\n    <title>Posters Galore Login</title>\n        <meta charset=\"utf-8\">\n        <link href=\"css/login.css\" rel='stylesheet' type='text/css' />\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n        <link rel=\"prefetch\" href=\"build/main.css\"/>\n</head>\n<body>\n     <div class=\"main\">\n        <div class=\"login-form\">\n            <h1>Posters Galore Member Login</h1>\n            \n            <form ng-submit=\"submit(user)\">\n                <input type=\"text\" class=\"text\" id=\"username\" value=\"Username\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Username';}\"  ng-model=\"user.name\">\n                <input type=\"password\" value=\"Password\" id=\"password\" onfocus=\"this.value = '';\" onblur=\"if (this.value == '') {this.value = 'Password';}\" ng-model=\"user.email\">\n                <div class=\"submit\">\n                    <input type=\"submit\" value=\"Log In\" >\n                </div>\n                <p><a href=\"#\">Hint: John / Password</a></p>\n            </form>\n        </div>\n         <!-- start-copyright -->\n        <div class=\"copy-right\">\n            <p>Template by <a href=\"http://w3layouts.com\">w3layouts</a></p>\n        </div>\n        <!-- end-copyright -->\n    </div>\n    <script type=\"application/x-javascript\">\n    window.addEventListener(\"load\", function() { setTimeout(hideURLbar, 0); }, false);\n    function hideURLbar(){\n        window.scrollTo(0,1);\n    }\n    </script>\n</body>\n</html>";
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -835,7 +892,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"navbar-header\">\n    <button type=\"button\" class=\"navbar-toggle\" ng-click=\"isCollapsed = !isCollapsed\">\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n    </button>\n    <a class=\"navbar-brand\" href=\"#\" ng-click=\"appController.displayHome()\">Posters Galore Backend</a>\n</div>\n<ul class=\"nav navbar-top-links navbar-right hidden-xs\">\n    <li>\n        <a href=\"https://github.com/marmelab/ng-admin-demo\">\n            <i class=\"fa fa-github fa-lg\"></i>&nbsp;Source\n        </a>\n    </li>\n    <li uib-dropdown ng-controller=\"username\">\n        <a uib-dropdown-toggle aria-expanded=\"true\" >\n            <i class=\"fa fa-user fa-lg\"></i>&nbsp;{{ username }}&nbsp;<i class=\"fa fa-caret-down\"></i>\n        </a>\n        <ul class=\"dropdown-menu dropdown-user\" role=\"menu\">\n            <li><a ng-click=\"logout()\"><i class=\"fa fa-sign-out fa-fw\"></i> Logout</a></li>\n        </ul>\n    </li>\n</ul>";
