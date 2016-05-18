@@ -66,6 +66,16 @@ myApp.controller('username', ['$scope', '$window', '$rootScope', '$state', 'Auth
     }
 }])
 
+myApp.config(['$translateProvider', function ($translateProvider) {
+    $translateProvider.translations('en', {
+        User: '用户',
+        Administrator:'管理员',
+        USER_CREATE: 'Création d\'un utilisateur: ',
+        USER_EDIT: 'Edition de l\'utilisateur: ',
+        USER_DELETE: 'Suppression de l\'utilisateur: ',
+    });
+}])
+
 
 
 // custom states (pages)
@@ -172,15 +182,6 @@ myApp.run(['Restangular', '$location', 'Auth', '$rootScope', 'httpBuffer', '$q',
 
 
     });
-
-    /*Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
-        return {
-            element: element,
-            params: params,
-            headers: headers,
-            data: $httpParamSerializerJQLike(data)
-        };
-    });*/
 
 
     Restangular.setErrorInterceptor(function(response, deferred, responseHandler) {
@@ -293,12 +294,6 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
         nga.field('title')
     ])
 
-    var subCategories = [
-        { category: 'User', label: 'Computers', value: 'computers' },
-        { category: 'User', label: 'Gadgets', value: 'gadgets' },
-        { category: 'lifestyle', label: 'Travel', value: 'travel' },
-        { category: 'lifestyle', label: 'Fitness', value: 'fitness' }
-    ];
 
     var statuses = ['admin', 'user', 'readc'];
     var statusChoices = statuses.map(status => ({ label: status, value: status }));
@@ -307,7 +302,9 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
     users.creationView().fields([
         nga.field('name'),
         nga.field('email'),
-        nga.field('password'),
+        nga.field('password')
+        .attributes({ placeholder: 'No space allowed, 5 chars min' })
+        .validation({ required: true, pattern: '[A-Za-z0-9\.\-_]{5,20}' }),
         nga.field('role_id', 'choice')
         .template('<na-choice-field field="::field" choices="choices" value="entry.values.role_id"></na-choice-field>')
         /*.choices(function(entry) {
@@ -333,7 +330,7 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
             })
     }]);*/
 
-    users.editionView().prepare(['Restangular', 'entry', function(Restangular, entry) {
+    /*users.editionView().prepare(['Restangular', 'entry', function(Restangular, entry) {
 
         return Restangular.allUrl('roles').getList()
             .then(function(response) {
@@ -346,7 +343,7 @@ myApp.config(['NgAdminConfigurationProvider', function(nga) {
                 }
 
             })
-    }]);
+    }]);*/
 
     users.editionView().fields(users.creationView().fields());
 

@@ -19,7 +19,7 @@ angular.module('myApp').factory('Auth', ['$http', '$rootScope', '$window', 'AUTH
                     var loginData = data
                     sessionStorage.clear()
                     sessionStorage.setItem('token', loginData.token);
-                    sessionStorage.setItem('name', loginData.name);
+                    sessionStorage.setItem('name', loginData.username);
                     Restangular.setDefaultHeaders({
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'Authorization': 'Bearer ' + data.token

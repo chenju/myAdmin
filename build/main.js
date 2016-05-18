@@ -117,6 +117,16 @@
 	    };
 	}]);
 
+	myApp.config(['$translateProvider', function ($translateProvider) {
+	    $translateProvider.translations('en', {
+	        User: '用户',
+	        Administrator: '管理员',
+	        USER_CREATE: 'Création d\'un utilisateur: ',
+	        USER_EDIT: 'Edition de l\'utilisateur: ',
+	        USER_DELETE: 'Suppression de l\'utilisateur: '
+	    });
+	}]);
+
 	// custom states (pages)
 	myApp.config(['$stateProvider', __webpack_require__(5)]);
 
@@ -213,15 +223,6 @@
 	            event.preventDefault();
 	        }
 	    });
-
-	    /*Restangular.setFullRequestInterceptor(function(element, operation, route, url, headers, params, httpConfig, data) {
-	        return {
-	            element: element,
-	            params: params,
-	            headers: headers,
-	            data: $httpParamSerializerJQLike(data)
-	        };
-	    });*/
 
 	    Restangular.setErrorInterceptor(function (response, deferred, responseHandler) {
 	        var config = response.config || {};
@@ -322,14 +323,12 @@
 
 	    roles.listView().fields([nga.field('title')]);
 
-	    var subCategories = [{ category: 'User', label: 'Computers', value: 'computers' }, { category: 'User', label: 'Gadgets', value: 'gadgets' }, { category: 'lifestyle', label: 'Travel', value: 'travel' }, { category: 'lifestyle', label: 'Fitness', value: 'fitness' }];
-
 	    var statuses = ['admin', 'user', 'readc'];
 	    var statusChoices = statuses.map(function (status) {
 	        return { label: status, value: status };
 	    });
 
-	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password'), nga.field('role_id', 'choice').template('<na-choice-field field="::field" choices="choices" value="entry.values.role_id"></na-choice-field>')
+	    users.creationView().fields([nga.field('name'), nga.field('email'), nga.field('password').attributes({ placeholder: 'No space allowed, 5 chars min' }).validation({ required: true, pattern: '[A-Za-z0-9\.\-_]{5,20}' }), nga.field('role_id', 'choice').template('<na-choice-field field="::field" choices="choices" value="entry.values.role_id"></na-choice-field>')
 	    /*.choices(function(entry) {
 	        return subCategories.filter(function(c) {
 	            console.log(entry.values.role)
@@ -351,18 +350,17 @@
 	             })
 	    }]);*/
 
-	    users.editionView().prepare(['Restangular', 'entry', function (Restangular, entry) {
-
-	        return Restangular.allUrl('roles').getList().then(function (response) {
-	            console.log(response);
-	            entry.values.roles = response.data.map(fuck);
-	            console.log(entry.values.roles);
-
-	            function fuck(v) {
-	                return { label: v.title, value: v.id };
-	            }
-	        });
-	    }]);
+	    /*users.editionView().prepare(['Restangular', 'entry', function(Restangular, entry) {
+	         return Restangular.allUrl('roles').getList()
+	            .then(function(response) {
+	                console.log(response)
+	                entry.values.roles = response.data.map(fuck)
+	                console.log(entry.values.roles)
+	                 function fuck(v) {
+	                    return { label: v.title, value: v.id };
+	                }
+	             })
+	    }]);*/
 
 	    users.editionView().fields(users.creationView().fields());
 
@@ -560,7 +558,7 @@
 	                var loginData = data;
 	                sessionStorage.clear();
 	                sessionStorage.setItem('token', loginData.token);
-	                sessionStorage.setItem('name', loginData.name);
+	                sessionStorage.setItem('name', loginData.username);
 	                Restangular.setDefaultHeaders({
 	                    'Content-Type': 'application/x-www-form-urlencoded',
 	                    'Authorization': 'Bearer ' + data.token
@@ -864,7 +862,7 @@
 	                        //var choices = (typeof scope.choices == 'function' && scope.choices()) ? scope.choices() : (field.choices ? field.choices() : []);
 	                        var choices = roles;
 
-	                        var template = '\n                        <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">\n                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder }}">{{ $select.selected.label }}</ui-select-match>\n                            <ui-select-choices ' + refreshAttributes + ' repeat="item.value as item in choices ' + itemsFilter + '  track by $index">\n                                {{ item.label  }}\n                            </ui-select-choices>\n                        </ui-select>';
+	                        var template = '\n                        <ui-select ng-model="$parent.value" ng-required="v.required" id="{{ name }}" name="{{ name }}">\n                            <ui-select-match allow-clear="{{ !v.required }}" placeholder="{{ placeholder |translate }}">{{ $select.selected.label |translate }}</ui-select-match>\n                            <ui-select-choices ' + refreshAttributes + ' repeat="item.value as item in choices ' + itemsFilter + '  track by $index">\n                                {{ item.label |translate }}\n                            </ui-select-choices>\n                        </ui-select>';
 
 	                        scope.choices = typeof choices === 'function' ? choices(scope.entry) : choices;
 
